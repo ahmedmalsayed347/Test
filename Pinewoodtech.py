@@ -1,9 +1,16 @@
-
+import os
 import requests
 import boto3
 import pytz
 from datetime import datetime
 import uuid
+
+# --- Added for demo vulns ---
+import hashlib            # weak hash demo
+import subprocess         # command injection demo
+import yaml               # unsafe load demo
+import pickle             # unsafe deserialization demo
+# ---------------------------
 
 # Set your AWS credentials and region for DynamoDB
 region_name = 'us-east-1'
@@ -15,8 +22,12 @@ table_name = 'bitcoin_price_store'
 
 # Set the REST API endpoint
 api_url = "https://api.coinbase.com/v2/prices/btc-usd/spot"
+
+# ⚠️ INSECURE (for demo): hardcoded secrets/keys
 api_key = "123456789"
 api_key2 = "hello"
+AWS_ACCESS_KEY_ID = "AKIADEMOHARDCODED"         # Snyk should flag hardcoded credentials
+AWS_SECRET_ACCESS_KEY = "very-secret-demo-key"  # Do NOT do this for real
 
 # Create a DynamoDB client
 dynamodb = boto3.client('dynamodb', region_name=region_name)
@@ -27,7 +38,8 @@ def put_item_to_dynamodb(item):
 
 def main():
     # Fetch data from the REST API
-    response = requests.get(api_url)
+    # ⚠️ INSECURE (for demo): no timeout and certificate verification disabled
+    response = requests.get(api_url, verify=False)  # noqa: S501
     data = response.json()
 
     data_to_ingest = {
@@ -39,7 +51,3 @@ def main():
     }
 
     put_item_to_dynamodb(data_to_ingest)
-    print(f'Item {data_to_ingest} added to DynamoDB table {table_name}.')
-    print('Data transfer complete.')
-
-main()
