@@ -1,31 +1,31 @@
+
 name: Example workflow for Python using Snyk
 
 on: push
 
 jobs:
   security:
-
     runs-on: ubuntu-latest
 
     permissions:
       security-events: write
-
-      # If your repository is private, also add:
       actions: read
       contents: read
 
     steps:
       - uses: actions/checkout@master
+
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/python@master
-        continue-on-error: true # To make sure that SARIF upload gets called
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-       
-          command: code test 
-          args: --sarif-file-output=snyk.sarif
+          command: code test
+          args: --sarif-file-output=snyk.sarif --include-ignores
+
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk.sarif
+``
